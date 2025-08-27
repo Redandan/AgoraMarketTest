@@ -30,7 +30,7 @@ try {
     # 步驟1: 執行 Web 登入 Widget 測試
     Write-Host "📋 步驟1: 執行 Web 登入 Widget 測試..." -ForegroundColor Yellow
     $loginResult = flutter test test/web_login_test.dart --reporter=json
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Web 登入 Widget 測試通過" -ForegroundColor Green
         $loginPassed = $true
@@ -38,11 +38,11 @@ try {
         Write-Host "❌ Web 登入 Widget 測試失敗" -ForegroundColor Red
         $loginPassed = $false
     }
-    
+
     # 步驟2: 執行基礎單元測試
     Write-Host "🧪 步驟2: 執行基礎單元測試..." -ForegroundColor Yellow
     $unitResult = flutter test test/unit_test.dart --reporter=json
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ 基礎單元測試通過" -ForegroundColor Green
         $unitPassed = $true
@@ -50,17 +50,29 @@ try {
         Write-Host "❌ 基礎單元測試失敗" -ForegroundColor Red
         $unitPassed = $false
     }
-    
-    # 步驟3: 執行完整測試套件
-    Write-Host "🚀 步驟3: 執行完整測試套件..." -ForegroundColor Yellow
-    $fullResult = flutter test --reporter=json
-    
+
+    # 步驟3: 執行 API 集成測試
+    Write-Host "🔗 步驟3: 執行 API 集成測試..." -ForegroundColor Yellow
+    $apiResult = flutter test test/api_integration_test.dart --reporter=json
+
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ 完整測試套件通過" -ForegroundColor Green
-        $fullPassed = $true
+        Write-Host "✅ API 集成測試通過" -ForegroundColor Green
+        $apiPassed = $true
     } else {
-        Write-Host "❌ 完整測試套件失敗" -ForegroundColor Red
-        $fullPassed = $false
+        Write-Host "❌ API 集成測試失敗" -ForegroundColor Red
+        $apiPassed = $false
+    }
+
+    # 步驟4: 執行性能測試
+    Write-Host "⚡ 步驟4: 執行性能測試..." -ForegroundColor Yellow
+    $performanceResult = flutter test test/performance_test.dart --reporter=json
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ 性能測試通過" -ForegroundColor Green
+        $performancePassed = $true
+    } else {
+        Write-Host "❌ 性能測試失敗" -ForegroundColor Red
+        $performancePassed = $false
     }
     
     # 步驟4: 驗證測試 Keys
@@ -83,18 +95,19 @@ try {
     Write-Host "`n📊 Web Widget 測試執行摘要:" -ForegroundColor Cyan
     Write-Host "   Web 登入 Widget 測試: $(if($loginPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($loginPassed){"Green"}else{"Red"})
     Write-Host "   基礎單元測試: $(if($unitPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($unitPassed){"Green"}else{"Red"})
-    Write-Host "   完整測試套件: $(if($fullPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($fullPassed){"Green"}else{"Red"})
+    Write-Host "   API 集成測試: $(if($apiPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($apiPassed){"Green"}else{"Red"})
+    Write-Host "   性能測試: $(if($performancePassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($performancePassed){"Green"}else{"Red"})
     Write-Host "   測試 Keys 驗證: $(if($keysPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($keysPassed){"Green"}else{"Red"})
-    
+
     Write-Host "`n⏱️  Web Widget 測試執行時間: $([math]::Round($duration, 2)) 秒" -ForegroundColor Cyan
     Write-Host "📁 Web 測試結果保存在: test_results\web\" -ForegroundColor Cyan
     Write-Host "✅ Web Widget 平台測試執行完成！" -ForegroundColor Green
-    
+
     # 計算總體成功率
-    $totalTests = 4
-    $passedTests = @($loginPassed, $unitPassed, $fullPassed, $keysPassed).Where({$_ -eq $true}).Count
+    $totalTests = 5
+    $passedTests = @($loginPassed, $unitPassed, $apiPassed, $performancePassed, $keysPassed).Where({$_ -eq $true}).Count
     $successRate = [math]::Round(($passedTests / $totalTests) * 100, 1)
-    
+
     Write-Host "📈 總體成功率: $successRate% ($passedTests/$totalTests)" -ForegroundColor $(if($successRate -ge 80){"Green"}elseif($successRate -ge 60){"Yellow"}else{"Red"})
     
     # 生成測試報告
@@ -152,8 +165,11 @@ try {
         <div class="test-item $(if($unitPassed){'passed'}else{'failed'})">
             <strong>基礎單元測試:</strong> $(if($unitPassed){"✅ 通過"}else{"❌ 失敗"})
         </div>
-        <div class="test-item $(if($fullPassed){'passed'}else{'failed'})">
-            <strong>完整測試套件:</strong> $(if($fullPassed){"✅ 通過"}else{"❌ 失敗"})
+        <div class="test-item $(if($apiPassed){'passed'}else{'failed'})">
+            <strong>API 集成測試:</strong> $(if($apiPassed){"✅ 通過"}else{"❌ 失敗"})
+        </div>
+        <div class="test-item $(if($performancePassed){'passed'}else{'failed'})">
+            <strong>性能測試:</strong> $(if($performancePassed){"✅ 通過"}else{"❌ 失敗"})
         </div>
         <div class="test-item $(if($keysPassed){'passed'}else{'failed'})">
             <strong>測試 Keys 驗證:</strong> $(if($keysPassed){"✅ 通過"}else{"❌ 失敗"})

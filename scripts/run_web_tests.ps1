@@ -28,8 +28,8 @@ try {
     
     # 步驟1: 執行 Web 登入測試
     Write-Host "📋 步驟1: 執行 Web 登入測試..." -ForegroundColor Yellow
-    $loginResult = flutter test integration_test/smoke_tests/web_login_test.dart --reporter=json
-    
+    $loginResult = flutter test test/web_login_test.dart --reporter=json
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Web 登入測試通過" -ForegroundColor Green
         $loginPassed = $true
@@ -37,11 +37,11 @@ try {
         Write-Host "❌ Web 登入測試失敗" -ForegroundColor Red
         $loginPassed = $false
     }
-    
+
     # 步驟2: 執行基礎導航測試
     Write-Host "🧭 步驟2: 執行基礎導航測試..." -ForegroundColor Yellow
     $navigationResult = flutter test integration_test/smoke_tests/basic_navigation_test.dart --reporter=json
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ 基礎導航測試通過" -ForegroundColor Green
         $navigationPassed = $true

@@ -1,68 +1,53 @@
-/// 測試用 Widget Keys 管理類
-/// 統一管理所有測試點，避免硬編碼和衝突
+/// 真實網站測試用 Widget Keys 管理類
+/// 統一管理所有真實測試點，避免硬編碼和衝突
 class TestKeys {
   TestKeys._();
 
-  // ===== 認證相關 Keys =====
-  static const String loginPage = 'login_page';
-  static const String emailInput = 'email_input';
-  static const String passwordInput = 'password_input';
-  static const String loginButton = 'login_button';
-  static const String registerButton = 'register_button';
-  static const String forgotPasswordLink = 'forgot_password_link';
+  // ===== 網站基本功能 Keys =====
+  static const String websiteTitle = 'website_title';
+  static const String websiteHeader = 'website_header';
+  static const String websiteFooter = 'website_footer';
+  static const String mainContent = 'main_content';
+  static const String navigationMenu = 'navigation_menu';
+
+  // ===== 表單元素 Keys =====
+  static const String formElement = 'form_element';
+  static const String inputField = 'input_field';
+  static const String submitButton = 'submit_button';
+  static const String searchBox = 'search_box';
+
+  // ===== 鏈接和導航 Keys =====
+  static const String linkElement = 'link_element';
+  static const String navigationLink = 'navigation_link';
+  static const String menuItem = 'menu_item';
+
+  // ===== 響應式設計 Keys =====
+  static const String viewportMeta = 'viewport_meta';
+  static const String responsiveContainer = 'responsive_container';
+  static const String mobileLayout = 'mobile_layout';
+  static const String desktopLayout = 'desktop_layout';
+
+  // ===== 性能相關 Keys =====
   static const String loadingIndicator = 'loading_indicator';
-  static const String errorMessage = 'error_message';
-  static const String successMessage = 'success_message';
+  static const String progressBar = 'progress_bar';
+  static const String cacheIndicator = 'cache_indicator';
 
-  // ===== 產品相關 Keys =====
-  static const String productList = 'product_list';
-  static const String productItem = 'product_item';
-  static const String productDetailPage = 'product_detail_page';
-  static const String productSearchBar = 'product_search_bar';
-  static const String productFilter = 'product_filter';
-  static const String productSort = 'product_sort';
-  static const String addToCartButton = 'add_to_cart_button';
-  static const String buyNowButton = 'buy_now_button';
-  static const String productImage = 'product_image';
-  static const String productPrice = 'product_price';
-  static const String productTitle = 'product_title';
+  // ===== 安全性相關 Keys =====
+  static const String securityHeader = 'security_header';
+  static const String httpsIndicator = 'https_indicator';
+  static const String sslCertificate = 'ssl_certificate';
 
-  // ===== 購物車相關 Keys =====
-  static const String cartPage = 'cart_page';
-  static const String cartIcon = 'cart_icon';
-  static const String cartList = 'cart_list';
-  static const String cartItem = 'cart_item';
-  static const String cartQuantity = 'cart_quantity';
-  static const String cartRemoveButton = 'cart_remove_button';
-  static const String checkoutButton = 'checkout_button';
-  static const String cartTotal = 'cart_total';
-
-  // ===== 用戶相關 Keys =====
-  static const String userProfile = 'user_profile';
-  static const String profileMenu = 'profile_menu';
-  static const String logoutButton = 'logout_button';
-  static const String userDashboard = 'user_dashboard';
-  static const String orderHistory = 'order_history';
-  static const String favoriteList = 'favorite_list';
-
-  // ===== 通用 UI Keys =====
-  static const String appBar = 'app_bar';
-  static const String bottomNavigation = 'bottom_navigation';
-  static const String drawer = 'drawer';
-  static const String modalDialog = 'modal_dialog';
-  static const String snackBar = 'snack_bar';
-  static const String tabBar = 'tab_bar';
+  // ===== 無障礙功能 Keys =====
+  static const String altText = 'alt_text';
+  static const String ariaLabel = 'aria_label';
+  static const String semanticElement = 'semantic_element';
 
   // ===== 工具方法 =====
-  /// 生成帶索引的 Key (例如: product_item_0, product_item_1)
+  /// 生成帶索引的 Key (例如: link_element_0, link_element_1)
   static String withIndex(String baseKey, int index) => '${baseKey}_$index';
 
-  /// 生成帶 ID 的 Key (例如: product_item_abc123)
+  /// 生成帶 ID 的 Key (例如: link_element_abc123)
   static String withId(String baseKey, String id) => '${baseKey}_$id';
-
-  /// 生成帶用戶 ID 的 Key (例如: cart_icon_user456)
-  static String withUserId(String baseKey, String userId) =>
-      '${baseKey}_$userId';
 
   /// 驗證 Key 是否為有效的測試 Key
   static bool isValidTestKey(String key) {
@@ -74,25 +59,26 @@ class TestKeys {
   /// 獲取所有可用的測試 Keys
   static List<String> getAllKeys() {
     return [
-      // 認證相關
-      loginPage, emailInput, passwordInput, loginButton, registerButton,
-      forgotPasswordLink, loadingIndicator, errorMessage, successMessage,
+      // 網站基本功能
+      websiteTitle, websiteHeader, websiteFooter, mainContent, navigationMenu,
 
-      // 產品相關
-      productList, productItem, productDetailPage, productSearchBar,
-      productFilter, productSort, addToCartButton, buyNowButton,
-      productImage, productPrice, productTitle,
+      // 表單元素
+      formElement, inputField, submitButton, searchBox,
 
-      // 購物車相關
-      cartPage, cartIcon, cartList, cartItem, cartQuantity,
-      cartRemoveButton, checkoutButton, cartTotal,
+      // 鏈接和導航
+      linkElement, navigationLink, menuItem,
 
-      // 用戶相關
-      userProfile, profileMenu, logoutButton, userDashboard,
-      orderHistory, favoriteList,
+      // 響應式設計
+      viewportMeta, responsiveContainer, mobileLayout, desktopLayout,
 
-      // 通用 UI
-      appBar, bottomNavigation, drawer, modalDialog, snackBar, tabBar,
+      // 性能相關
+      loadingIndicator, progressBar, cacheIndicator,
+
+      // 安全性相關
+      securityHeader, httpsIndicator, sslCertificate,
+
+      // 無障礙功能
+      altText, ariaLabel, semanticElement,
     ];
   }
 }

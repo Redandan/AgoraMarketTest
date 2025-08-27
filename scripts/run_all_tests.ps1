@@ -20,31 +20,50 @@ try {
     $smokeResult = flutter test integration_test/smoke_tests/ --reporter=json
     $smokePassed = ($LASTEXITCODE -eq 0)
     Write-Host $([string]::Format("煙霧測試: {0}", $(if($smokePassed){"✅ 通過"}else{"❌ 失敗"}))) -ForegroundColor $(if($smokePassed){"Green"}else{"Red"})
-    
+
     # 步驟2: 用戶流程測試
     Write-Host "👤 步驟2: 執行用戶流程測試..." -ForegroundColor Yellow
     $flowResult = flutter test integration_test/user_flows/ --reporter=json
     $flowPassed = ($LASTEXITCODE -eq 0)
     Write-Host $([string]::Format("用戶流程測試: {0}", $(if($flowPassed){"✅ 通過"}else{"❌ 失敗"}))) -ForegroundColor $(if($flowPassed){"Green"}else{"Red"})
-    
+
     # 步驟3: 業務場景測試
     Write-Host "🏢 步驟3: 執行業務場景測試..." -ForegroundColor Yellow
     $businessResult = flutter test integration_test/business_scenarios/ --reporter=json
     $businessPassed = ($LASTEXITCODE -eq 0)
     Write-Host $([string]::Format("業務場景測試: {0}", $(if($businessPassed){"✅ 通過"}else{"❌ 失敗"}))) -ForegroundColor $(if($businessPassed){"Green"}else{"Red"})
-    
+
     # 步驟4: 回歸測試
     Write-Host "🔄 步驟4: 執行回歸測試..." -ForegroundColor Yellow
     $regressionResult = flutter test integration_test/regression_tests/ --reporter=json
     $regressionPassed = ($LASTEXITCODE -eq 0)
     Write-Host $([string]::Format("回歸測試: {0}", $(if($regressionPassed){"✅ 通過"}else{"❌ 失敗"}))) -ForegroundColor $(if($regressionPassed){"Green"}else{"Red"})
+
+    # 步驟5: 半白盒測試
+    Write-Host "🔍 步驟5: 執行半白盒測試..." -ForegroundColor Yellow
+    $semiWhiteboxResult = flutter test integration_test/semi_whitebox_test.dart --reporter=json
+    $semiWhiteboxPassed = ($LASTEXITCODE -eq 0)
+    Write-Host $([string]::Format("半白盒測試: {0}", $(if($semiWhiteboxPassed){"✅ 通過"}else{"❌ 失敗"}))) -ForegroundColor $(if($semiWhiteboxPassed){"Green"}else{"Red"})
     
     # 計算執行時間
     $endTime = Get-Date
     $duration = ($endTime - $startTime).TotalSeconds
     
-    Write-Host "⏱️  測試執行時間: $([math]::Round($duration, 2)) 秒" -ForegroundColor Cyan
+    # 計算總體成功率
+    $totalTests = 5
+    $passedTests = @($smokePassed, $flowPassed, $businessPassed, $regressionPassed, $semiWhiteboxPassed).Where({$_ -eq $true}).Count
+    $successRate = [math]::Round(($passedTests / $totalTests) * 100, 1)
+
+    Write-Host "`n📊 完整測試套件執行摘要:" -ForegroundColor Cyan
+    Write-Host "   煙霧測試: $(if($smokePassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($smokePassed){"Green"}else{"Red"})
+    Write-Host "   用戶流程測試: $(if($flowPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($flowPassed){"Green"}else{"Red"})
+    Write-Host "   業務場景測試: $(if($businessPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($businessPassed){"Green"}else{"Red"})
+    Write-Host "   回歸測試: $(if($regressionPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($regressionPassed){"Green"}else{"Red"})
+    Write-Host "   半白盒測試: $(if($semiWhiteboxPassed){"✅ 通過"}else{"❌ 失敗"})" -ForegroundColor $(if($semiWhiteboxPassed){"Green"}else{"Red"})
+
+    Write-Host "`n⏱️  測試執行時間: $([math]::Round($duration, 2)) 秒" -ForegroundColor Cyan
     Write-Host "📁 測試結果保存在: test_results\" -ForegroundColor Cyan
+    Write-Host "📈 總體成功率: $successRate% ($passedTests/$totalTests)" -ForegroundColor $(if($successRate -ge 80){"Green"}elseif($successRate -ge 60){"Yellow"}else{"Red"})
     Write-Host "✅ 完整測試套件執行完成！" -ForegroundColor Green
     
 } catch {
