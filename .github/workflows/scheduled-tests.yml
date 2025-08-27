@@ -1,0 +1,196 @@
+name: Scheduled Test Suite
+
+on:
+  schedule:
+    # Run every day at 2 AM UTC (10 AM Taipei)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test Environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  TEST_ENV: ${{ github.event.inputs.environment || 'staging' }}
+  CI: true
+  HEADLESS: true
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run smoke tests
+        run: flutter test integration_test/smoke_tests/
+
+      - name: Run critical path tests
+        run: |
+          flutter test test/login_check_test.dart
+          flutter test test/routing_check_test.dart
+
+  regression-tests:
+    name: Regression Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run regression tests
+        run: flutter test integration_test/regression_tests/
+
+      - name: Run enhanced login tests
+        run: flutter test test/enhanced_login_test.dart
+
+  playwright-smoke:
+    name: Playwright Smoke Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Run critical user journey tests
+        run: npx playwright test tests/playwright/user-journey.spec.ts --project=chromium --grep "Complete user login journey|Product browsing journey"
+        env:
+          CI: true
+
+  environment-health-check:
+    name: Environment Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Test environment connectivity
+        run: flutter test test/environment_management_test.dart -v
+
+      - name: Check test environment status
+        run: |
+          echo "Testing environment: $TEST_ENV"
+          curl -I https://redandan.github.io/ || echo "Main site may be down"
+          curl -I https://api.agoramarket.com/ || echo "API may be down"
+
+  alert-on-failure:
+    name: Send Alert on Test Failure
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, regression-tests, playwright-smoke, environment-health-check]
+    if: failure()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create failure report
+        run: |
+          echo "# 🚨 Scheduled Test Failure Alert" > failure-report.md
+          echo "" >> failure-report.md
+          echo "**Timestamp:** $(date)" >> failure-report.md
+          echo "**Environment:** $TEST_ENV" >> failure-report.md
+          echo "**Run ID:** ${{ github.run_id }}" >> failure-report.md
+          echo "**Workflow:** Scheduled Test Suite" >> failure-report.md
+          echo "" >> failure-report.md
+          echo "## Failed Jobs:" >> failure-report.md
+          echo "- Check the job details above for specific failures" >> failure-report.md
+          echo "" >> failure-report.md
+          echo "## Recommended Actions:" >> failure-report.md
+          echo "1. Review the test failures in the job logs" >> failure-report.md
+          echo "2. Check if the target environment is accessible" >> failure-report.md
+          echo "3. Verify if there are recent code changes that might affect tests" >> failure-report.md
+          echo "4. Run manual tests to confirm the issues" >> failure-report.md
+          echo "" >> failure-report.md
+          echo "---" >> failure-report.md
+          echo "*This is an automated message from AgoraMarket CI/CD*" >> failure-report.md
+
+      - name: Upload failure report
+        uses: actions/upload-artifact@v3
+        with:
+          name: scheduled-test-failure-report-${{ github.run_id }}
+          path: failure-report.md
+
+      # Note: In a real-world scenario, you would integrate with notification services
+      # like Slack, Discord, or email services here
+
+  success-summary:
+    name: Test Success Summary
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, regression-tests, playwright-smoke, environment-health-check]
+    if: success()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create success report
+        run: |
+          echo "# ✅ Scheduled Test Success" > success-report.md
+          echo "" >> success-report.md
+          echo "**Timestamp:** $(date)" >> success-report.md
+          echo "**Environment:** $TEST_ENV" >> success-report.md
+          echo "**Run ID:** ${{ github.run_id }}" >> success-report.md
+          echo "" >> success-report.md
+          echo "## All Tests Passed Successfully! 🎉" >> success-report.md
+          echo "" >> success-report.md
+          echo "- Smoke tests: ✅ PASSED" >> success-report.md
+          echo "- Regression tests: ✅ PASSED" >> success-report.md
+          echo "- Playwright smoke tests: ✅ PASSED" >> success-report.md
+          echo "- Environment health check: ✅ PASSED" >> success-report.md
+          echo "" >> success-report.md
+          echo "---" >> success-report.md
+          echo "*This is an automated message from AgoraMarket CI/CD*" >> success-report.md
+
+      - name: Upload success report
+        uses: actions/upload-artifact@v3
+        with:
+          name: scheduled-test-success-report-${{ github.run_id }}
+          path: success-report.md

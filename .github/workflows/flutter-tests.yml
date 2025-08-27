@@ -1,0 +1,227 @@
+name: Flutter Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test Environment'
+        required: false
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  TEST_ENV: ${{ github.event.inputs.environment || 'development' }}
+  CI: true
+
+jobs:
+  flutter-tests:
+    name: Flutter Widget & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            .flutter
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            flutter-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Format code
+        run: flutter format --set-exit-if-changed .
+
+      - name: Run unit tests
+        run: flutter test --coverage
+
+      - name: Run integration tests
+        run: flutter test integration_test/
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          flags: flutter
+          name: flutter-coverage
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: flutter-test-results
+          path: |
+            test_results/
+            coverage/
+
+  playwright-tests:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.browser }}
+        env:
+          CI: true
+
+      - name: Upload Playwright test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-results-${{ matrix.browser }}
+          path: |
+            test_results/playwright/
+            playwright-report/
+
+      - name: Upload test videos
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-videos-${{ matrix.browser }}
+          path: test_results/playwright/videos/
+
+  security-tests:
+    name: Security & Performance Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run security tests
+        run: flutter test test/enhanced_login_test.dart
+
+      - name: Run performance tests
+        run: flutter test test/performance_test.dart
+
+      - name: Upload security test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-test-results
+          path: test_results/
+
+  environment-tests:
+    name: Environment Management Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run environment management tests
+        run: flutter test test/environment_management_test.dart
+
+      - name: Test environment switching
+        run: |
+          flutter test test/environment_management_test.dart -v
+          echo "Testing environment configurations..."
+          flutter pub run test test/environment_management_test.dart
+
+  combined-report:
+    name: Generate Combined Test Report
+    runs-on: ubuntu-latest
+    needs: [flutter-tests, playwright-tests, security-tests, environment-tests]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v3
+        with:
+          path: all-test-results
+
+      - name: Generate combined report
+        run: |
+          echo "# AgoraMarket Test Report" > test-report.md
+          echo "Generated on: $(date)" >> test-report.md
+          echo "" >> test-report.md
+          echo "## Test Summary" >> test-report.md
+          echo "" >> test-report.md
+
+          # Count test results
+          find all-test-results -name "*.json" -o -name "*.xml" | wc -l | xargs echo "Total test files: " >> test-report.md
+
+          echo "" >> test-report.md
+          echo "## Flutter Tests" >> test-report.md
+          ls -la all-test-results/flutter-test-results/ || echo "No Flutter results found" >> test-report.md
+
+          echo "" >> test-report.md
+          echo "## Playwright Tests" >> test-report.md
+          ls -la all-test-results/playwright-results-*/*.json 2>/dev/null || echo "No Playwright results found" >> test-report.md
+
+          echo "" >> test-report.md
+          echo "## Security Tests" >> test-report.md
+          ls -la all-test-results/security-test-results/ || echo "No security results found" >> test-report.md
+
+          echo "" >> test-report.md
+          echo "## Environment Tests" >> test-report.md
+          ls -la all-test-results/environment-test-results/ || echo "No environment results found" >> test-report.md
+
+      - name: Upload combined report
+        uses: actions/upload-artifact@v3
+        with:
+          name: combined-test-report
+          path: test-report.md

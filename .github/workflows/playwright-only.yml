@@ -1,0 +1,190 @@
+name: Playwright E2E Tests Only
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test Environment'
+        required: false
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      browser:
+        description: 'Browser to test'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chromium
+          - firefox
+          - webkit
+
+env:
+  TEST_ENV: ${{ github.event.inputs.environment || 'development' }}
+  CI: true
+
+jobs:
+  playwright-e2e:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: ${{ fromJSON(
+          github.event.inputs.browser == 'all' && '["chromium", "firefox", "webkit"]' ||
+          format('["{0}"]', github.event.inputs.browser)
+        ) }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3-dev \
+            libatk-bridge2.0-dev \
+            libdrm2 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libgbm1 \
+            libxss1 \
+            libasound2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Create test results directory
+        run: mkdir -p test_results/playwright/screenshots test_results/playwright/videos test_results/playwright/traces
+
+      - name: Run Playwright tests
+        run: |
+          echo "Running Playwright tests on ${{ matrix.browser }}"
+          echo "Environment: $TEST_ENV"
+          npx playwright test --project=${{ matrix.browser }} --reporter=json,line
+        env:
+          CI: true
+          HEADLESS: true
+
+      - name: Generate HTML report
+        run: npx playwright show-report --reporter=html
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-results-${{ matrix.browser }}-${{ github.run_id }}
+          path: |
+            test_results/playwright/
+            playwright-report/
+          retention-days: 30
+
+      - name: Upload screenshots on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: playwright-failure-screenshots-${{ matrix.browser }}-${{ github.run_id }}
+          path: test_results/playwright/screenshots/
+          retention-days: 30
+
+      - name: Upload videos on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: playwright-failure-videos-${{ matrix.browser }}-${{ github.run_id }}
+          path: test_results/playwright/videos/
+          retention-days: 30
+
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    needs: playwright-e2e
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Run visual regression tests
+        run: npx playwright test tests/playwright/visual-regression.spec.ts --project=chromium
+        env:
+          CI: true
+
+      - name: Upload visual regression results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: visual-regression-results-${{ github.run_id }}
+          path: test_results/playwright/screenshots/
+          retention-days: 30
+
+  summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [playwright-e2e, visual-regression]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download test results
+        uses: actions/download-artifact@v3
+        with:
+          path: test-results
+
+      - name: Generate summary
+        run: |
+          echo "## Playwright Test Summary" > summary.md
+          echo "- **Workflow:** Playwright E2E Tests Only" >> summary.md
+          echo "- **Environment:** $TEST_ENV" >> summary.md
+          echo "- **Triggered by:** ${{ github.actor }}" >> summary.md
+          echo "- **Run ID:** ${{ github.run_id }}" >> summary.md
+          echo "- **Timestamp:** $(date)" >> summary.md
+          echo "" >> summary.md
+
+          echo "### Test Results" >> summary.md
+          find test-results -name "*.json" -exec basename {} \; | while read file; do
+            echo "- $file" >> summary.md
+          done
+
+          echo "" >> summary.md
+          echo "### Screenshots" >> summary.md
+          find test-results -name "*.png" | wc -l | xargs echo "- Total screenshots: " >> summary.md
+
+          echo "" >> summary.md
+          echo "### Videos" >> summary.md
+          find test-results -name "*.webm" | wc -l | xargs echo "- Total videos: " >> summary.md
+
+          cat summary.md
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-summary-${{ github.run_id }}
+          path: summary.md
