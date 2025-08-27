@@ -1,138 +1,105 @@
-# Logs
-logs
+# Miscellaneous
+*.class
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
 
-# Coverage directory used by tools like istanbul
-coverage
-*.lcov
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
 
-# nyc test coverage
-.nyc_output
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
 
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
+# Symbolication related
+app.*.symbols
 
-# Bower dependency directory (https://bower.io/)
-bower_components
+# Obfuscation related
+app.*.map.json
 
-# node-waf configuration
-.lock-wscript
+# Web 平台相關
+/web/build/
+/web/assets/
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
+# ===== 測試項目特定配置 =====
 
-# Dependency directories
-node_modules/
-jspm_packages/
+# 測試結果和報告
+test_results/
+test_coverage/
+*.test.dart.bak
 
-# TypeScript v1 declaration files
-typings/
+# 測試截圖和日誌
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
 
-# TypeScript cache
-*.tsbuildinfo
+# 測試報告
+*.html
+*.json
+test-report.*
 
-# Optional npm cache directory
-.npm
+# 臨時文件
+temp/
+tmp/
+*.tmp
 
-# Optional eslint cache
-.eslintcache
+# 平台特定文件
+.metadata
+*.iml
 
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
+# 測試日誌
+logs/
+*.log.*
 
-# Optional REPL history
-.node_repl_history
+# 測試緩存
+.cache/
+test_cache/
 
-# Output of 'npm pack'
-*.tgz
+# 性能分析文件
+*.perf
+*.trace
 
-# Yarn Integrity file
-.yarn-integrity
+# 測試視頻錄製（如果有）
+*.mp4
+*.avi
+*.mov
 
-# dotenv environment variables file
+# 測試數據文件
+test_data/
+*.csv
+*.xlsx
+*.xls
+
+# 環境配置文件
 .env
+.env.local
 .env.test
 .env.production
-.env.local
 
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-dist
-
-# Gatsby files
-.cache/
-# Comment in the public line in if your project uses Gatsby and *not* Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Playwright specific
-/test-results/
-/playwright-report/
-/playwright/.cache/
-
-# Screenshots and test artifacts
-screenshots/
-test-results/
-*.zip
-*.tar.gz
-
-# IDE and editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-*.temp
-
-# Trace files
-trace.zip
-*.trace
+# 本地配置
+local_config/
+config.local.*
