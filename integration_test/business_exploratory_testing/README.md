@@ -18,21 +18,20 @@ business_exploratory_testing/
 
 ## 🚀 快速開始
 
-### 1. 運行您的第一個業務探索測試
+### 1. 生成業務文檔
 
 ```powershell
 # 從項目根目錄執行
-.\scripts\run-business-exploratory-tests.ps1
+.\scripts\generate-business-docs.ps1
 ```
 
 ### 2. 查看測試結果
 
 測試運行後，您將在 `business_logic_findings/` 目錄中找到生成的業務理解檔案：
 
-```
-📄 product_browsing_behavior_2024-01-15.md
-📄 shopping_cart_interaction_2024-01-16.md
-📄 checkout_flow_analysis_2024-01-17.md
+```powershell
+# 查看最新生成的業務分析報告
+Get-ChildItem integration_test/business_exploratory_testing/business_logic_findings/ -Filter "*.md" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 ```
 
 ## 📝 業務理解檔案格式
@@ -61,9 +60,22 @@ business_exploratory_testing/
 
 ## 🎪 測試場景示例
 
+### 全面業務場景探索
+```typescript
+// 探索完整業務流程並自動生成業務文檔
+test('全面業務場景探索 - 自動生成業務文檔', async ({ page }) => {
+  // 階段1: 應用入口探索
+  // 階段2: 用戶認證流程探索
+  // 階段3: 產品瀏覽體驗探索
+  // 階段4: 購物車功能探索
+  // 階段5: 結帳流程探索
+  // 階段6: 業務邏輯總結與文檔生成
+});
+```
+
 ### 產品瀏覽行為探索
 ```typescript
-// 探索用戶如何瀏覽產品
+// 探索用戶產品瀏覽行為模式
 test('探索用戶產品瀏覽行為模式', async ({ page }) => {
   // 訪問產品頁面
   // 分析可交互元素
@@ -72,21 +84,11 @@ test('探索用戶產品瀏覽行為模式', async ({ page }) => {
 });
 ```
 
-### 購物車交互分析
+### 業務流程優化
 ```typescript
-// 分析購物車的使用模式
-test('探索購物車交互行為', async ({ page }) => {
-  // 添加產品到購物車
-  // 分析購物車狀態變化
-  // 記錄用戶決策過程
-});
-```
-
-### 結帳流程優化
-```typescript
-// 優化結帳體驗
-test('探索結帳流程用戶體驗', async ({ page }) => {
-  // 模擬完整結帳流程
+// 優化業務流程體驗
+test('探索業務流程用戶體驗', async ({ page }) => {
+  // 模擬完整業務流程
   // 識別用戶痛點
   // 提出流程改進建議
 });
@@ -98,19 +100,23 @@ test('探索結帳流程用戶體驗', async ({ page }) => {
 每個生成的 `.md` 檔案都包含詳細的業務分析：
 
 ```markdown
-# 產品瀏覽行為業務理解報告
+# AgoraMarket 綜合業務分析報告
+
+## 執行摘要
+本次業務探索測試涵蓋了 AgoraMarket Flutter Web 應用的完整用戶旅程，共發現：
+- **5** 個業務邏輯發現
+- **0** 種用戶行為模式
+- **0** 個技術挑戰
+- **0** 個業務機會
 
 ## 用戶旅程分析
-- 用戶通過直接URL訪問產品頁面
-- 發現多個可交互元素供用戶選擇
-
-## 業務邏輯發現
-- 產品頁面提供搜索和分類功能
-- 用戶可以通過多種方式與產品交互
-
-## 用戶行為模式
-- 用戶傾向於先瀏覽再進行具體操作
-- 交互式元素點擊率最高的行為模式
+### 應用入口
+#### 步驟 1: 訪問主頁面
+- **觀察**: 成功載入主頁面，標題為"Agora Market"，內容長度7字符
+- **業務邏輯**: 應用提供清晰的主頁面入口，用戶可以快速了解應用功能
+- **訪問URL**: https://redandan.github.io/
+- **時間戳**: 2025-08-28T03:43:33.576Z
+- **技術筆記**: Flutter Web 應用載入正常，無障礙功能按鈕存在但定位在視窗外
 ```
 
 ### 2. 識別改進機會
